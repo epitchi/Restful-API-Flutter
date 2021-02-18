@@ -25,15 +25,6 @@ class _DetailTaskScreenState extends State<DetailTaskScreen> {
           if (snapshot.hasError) print(snapshot.error);
           if (snapshot.hasData) {
             return DetailTask(task: snapshot.data);
-
-            ///
-            ///
-            /// 34:53 / 53:13
-            /// Idk wtf but i cant coding, i sleep
-            ///
-            ///
-            ///
-            ///
           } else {
             return Center(
               child: CircularProgressIndicator(),
@@ -41,6 +32,132 @@ class _DetailTaskScreenState extends State<DetailTaskScreen> {
           }
         },
       ),
+    );
+  }
+}
+
+class DetailTask extends StatefulWidget {
+  final Task task;
+  DetailTask({Key key, this.task}) : super(key: key);
+  @override
+  _DetailTaskState createState() => _DetailTaskState();
+}
+
+class _DetailTaskState extends State<DetailTask> {
+  Task task = new Task();
+  bool isLoadedTask = false;
+
+  @override
+  Widget build(BuildContext context) {
+    if (isLoadedTask == false) {
+      setState(() {
+        this.task = Task.fromTask(widget.task);
+        this.isLoadedTask = true;
+      });
+    }
+    final TextField _txtTaskName = new TextField(
+      decoration: InputDecoration(
+          hintText: "Enter task's name",
+          contentPadding: EdgeInsets.all(10.0),
+          border:
+              OutlineInputBorder(borderSide: BorderSide(color: Colors.black))),
+      autocorrect: false,
+      controller: TextEditingController(text: this.task.name),
+      textAlign: TextAlign.left,
+      onChanged: (text) {
+        setState(() {
+          this.task.name = text;
+        });
+      },
+    );
+    final Text _txtFinished =
+        Text("Finished:", style: TextStyle(fontSize: 16.0));
+    final Checkbox _cbFinished = Checkbox(
+        value: this.task.finished,
+        onChanged: (bool value) {
+          setState(() {
+            this.task.finished = value;
+          });
+        });
+    final _btnSave = RaisedButton(
+      child: Text("Save"),
+      color: Theme.of(context).accentColor,
+      elevation: 4.0,
+      onPressed: () async {
+        Map<String, dynamic> params = Map<String, dynamic>();
+        params["id"] = this.task.id.toString();
+        params["name"] = this.task.name;
+        params["isfinished"] = this.task.finished ? "1" : "0";
+        params["todoid"] = this.task.todoId.toString();
+        await updateATask(http.Client(), params);
+        Navigator.pop(context);
+      },
+    );
+    final _btnDelete = RaisedButton(
+      child: Text("Delete"),
+      color: Colors.redAccent,
+      elevation: 4.0,
+      onPressed: () async {
+        // await deletaATask(http.Client(), this.task.id);
+        // Navigator.pop(context);
+        showDialog(
+            context: context,
+            barrierDismissible: true,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text("Confirmation"),
+                content: SingleChildScrollView(
+                    child: ListBody(
+                  children: <Widget>[
+                    Text("Are you sure you want to delete this ?")
+                  ],
+                )),
+                actions: <Widget>[
+                  new FlatButton(
+                      onPressed: () async {
+                        await deletaATask(http.Client(), this.task.id);
+                        await Navigator.pop(context);
+                        Navigator.pop(context);
+                      },
+                      child: Text("Yes")),
+                  new FlatButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: Text("No"))
+                ],
+              );
+            });
+      },
+    );
+    final _column = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: <Widget>[
+        _txtTaskName,
+        Container(
+          padding: EdgeInsets.only(left: 10.0, right: 10.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              _txtFinished,
+              _cbFinished,
+            ],
+          ),
+        ),
+        Row(
+          children: <Widget>[
+            Expanded(
+              child: _btnSave,
+            ),
+            Expanded(child: _btnDelete),
+          ],
+        )
+      ],
+    );
+    return Container(
+      margin: EdgeInsets.all(10.0),
+      child: _column,
     );
   }
 }

@@ -63,3 +63,28 @@ Future<List<Task>> fetchTaskById(http.Client client, int id) async {
     }
   }
 }
+
+//Update a task
+Future<Task> updateATask(
+    http.Client client, Map<String, dynamic> params) async {
+  final response = await client.put('$URL_TASKS/${params["id"]}', body: params);
+  if (response.statusCode == 200) {
+    final responseBody = await json.decode(response.body);
+    return Task.fromJson(responseBody);
+  } else {
+    throw Exception('Failed to update a Task. Error: ${response.toString()}');
+  }
+}
+
+//Delete a Task
+
+Future<Task> deletaATask(http.Client client, int id) async {
+  final String url = '$URL_TASKS/$id';
+  final response = await client.delete(url);
+  if (response.statusCode == 200) {
+    final responseBody = await json.decode(response.body);
+    return Task.fromJson(responseBody);
+  } else {
+    throw Exception('Failed to delete a Task');
+  }
+}
